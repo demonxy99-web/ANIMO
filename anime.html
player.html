@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ANIMO – Anime</title>
+
+<style>
+body{margin:0;font-family:Arial;background:#0b1220;color:white}
+header{padding:12px;background:#0f172a;font-size:20px}
+button{padding:10px;border:none;border-radius:8px;font-size:14px}
+.fav{background:#22c55e;color:black}
+.season{padding:10px;border-bottom:1px solid #1e293b}
+.episode{padding:10px;margin:6px 0;background:#111827;border-radius:8px;cursor:pointer}
+</style>
+</head>
+
+<body>
+
+<header id="title">Anime</header>
+<button class="fav" id="favBtn">+ My List</button>
+
+<div id="content"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:"YOUR_API_KEY",
+  authDomain:"animo-ab129.firebaseapp.com",
+  projectId:"animo-ab129",
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const animeId = localStorage.getItem("animeId");
+const user = auth.currentUser;
+const content = document.getElementById("content");
+
+const animeRef = doc(db,"anime",animeId);
+const snap = await getDoc(animeRef);
+const anime = snap.data();
+
+document.getElementById("title").innerText = anime.title;
+
+/* ❤️ ADD TO MY LIST */
+document.getElementById("favBtn").onclick = async ()=>{
+  if(!user) return alert("Login required");
+  await setDoc(doc(db,"users",user.uid,"mylist",animeId),anime);
+  alert("Added to My List");
+};
+
+/* 📺 SEASONS & EPISODES */
+anime.seasons.forEach(season=>{
+  const s = document.createElement("div");
+  s.className="season";
+  s.innerHTML=`<h3>${season.name}</h3>`;
+  season.episodes.forEach(ep=>{
+    const e = document.createElement("div");
+    e.className="episode";
+    e.innerText = ep.title;
+    e.onclick=()=>{
+      localStorage.setItem("video",ep.video);
+      localStorage.setItem("epTitle",ep.title);
+      window.location.href="player.html";
+    };
+    s.appendChild(e);
+  });
+  content.appendChild(s);
+});
+</script>
+
+</body>
+</html>
