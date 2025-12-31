@@ -7,179 +7,99 @@
 
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: Arial;
       background: #0f172a;
       color: white;
       padding: 16px;
     }
-    h1 {
-      text-align: center;
-      color: #38bdf8;
+    h1 { text-align:center; color:#38bdf8; }
+    input, button {
+      width:100%; padding:10px; margin:6px 0;
+      border:none; border-radius:6px;
     }
-    input, textarea, button {
-      width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-      border-radius: 6px;
-      border: none;
-    }
-    button {
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .add {
-      background: #22c55e;
-      color: black;
-    }
-    .update {
-      background: #38bdf8;
-      color: black;
-    }
-    .delete {
-      background: #ef4444;
-      color: white;
-    }
+    button { font-weight:bold; cursor:pointer; }
+    .add { background:#22c55e; color:black; }
+    .delete { background:#ef4444; color:white; }
+    .season { background:#6366f1; color:white; }
     .card {
-      background: #1e293b;
-      padding: 12px;
-      border-radius: 8px;
-      margin-top: 12px;
-    }
-    img {
-      width: 100%;
-      border-radius: 6px;
+      background:#1e293b; padding:12px;
+      border-radius:8px; margin-top:12px;
     }
   </style>
 </head>
 
 <body>
 
-<h1>ANIMO Admin Panel</h1>
+<h1>ANIMO Admin</h1>
 
 <input id="title" placeholder="Anime Title">
-<input id="image" placeholder="Poster Image URL">
-<input id="video" placeholder="Video Link (YouTube / MP4)">
-<textarea id="desc" placeholder="Description"></textarea>
-
+<input id="image" placeholder="Poster URL">
+<input id="video" placeholder="Trailer / Preview Video">
 <button class="add" onclick="addAnime()">Add Anime</button>
-<button class="update" onclick="updateAnime()" style="display:none;">Update Anime</button>
 
 <hr>
 
 <div id="animeList"></div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-  import {
-    getFirestore,
-    collection,
-    addDoc,
-    getDocs,
-    deleteDoc,
-    updateDoc,
-    doc
-  } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, getDocs,
+  deleteDoc, doc
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDRDsqBFjIXp6mh8LO431Usd-Rmpw5pTDM",
-    authDomain: "animo-ab129.firebaseapp.com",
-    projectId: "animo-ab129",
-    storageBucket: "animo-ab129.firebasestorage.app",
-    messagingSenderId: "806187073262",
-    appId: "1:806187073262:web:28fb98cbf9a25a214ffdff"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyDRDsqBFjIXp6mh8LO431Usd-Rmpw5pTDM",
+  authDomain: "animo-ab129.firebaseapp.com",
+  projectId: "animo-ab129",
+  storageBucket: "animo-ab129.firebasestorage.app",
+  messagingSenderId: "806187073262",
+  appId: "1:806187073262:web:28fb98cbf9a25a214ffdff"
+};
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-  let editId = null;
-
-  window.addAnime = async function () {
-    const title = titleInput.value;
-    const image = imageInput.value;
-    const video = videoInput.value;
-    const desc = descInput.value;
-
-    if (!title || !image || !video) {
-      alert("Title, image & video required");
-      return;
-    }
-
-    await addDoc(collection(db, "anime"), {
-      title, image, video, desc, time: new Date()
-    });
-
-    clearForm();
-    loadAnime();
-  };
-
-  window.editAnime = function (id, data) {
-    editId = id;
-    titleInput.value = data.title;
-    imageInput.value = data.image;
-    videoInput.value = data.video;
-    descInput.value = data.desc || "";
-
-    document.querySelector(".add").style.display = "none";
-    document.querySelector(".update").style.display = "block";
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  window.updateAnime = async function () {
-    if (!editId) return;
-
-    await updateDoc(doc(db, "anime", editId), {
-      title: titleInput.value,
-      image: imageInput.value,
-      video: videoInput.value,
-      desc: descInput.value
-    });
-
-    editId = null;
-    clearForm();
-    loadAnime();
-  };
-
-  window.deleteAnime = async function (id) {
-    if (!confirm("Delete this anime?")) return;
-    await deleteDoc(doc(db, "anime", id));
-    loadAnime();
-  };
-
-  function clearForm() {
-    titleInput.value = "";
-    imageInput.value = "";
-    videoInput.value = "";
-    descInput.value = "";
-    document.querySelector(".add").style.display = "block";
-    document.querySelector(".update").style.display = "none";
-  }
-
-  const titleInput = document.getElementById("title");
-  const imageInput = document.getElementById("image");
-  const videoInput = document.getElementById("video");
-  const descInput = document.getElementById("desc");
-
-  async function loadAnime() {
-    const list = document.getElementById("animeList");
-    list.innerHTML = "";
-
-    const snap = await getDocs(collection(db, "anime"));
-    snap.forEach(d => {
-      const a = d.data();
-      list.innerHTML += `
-        <div class="card">
-          <h3>${a.title}</h3>
-          <img src="${a.image}">
-          <p>${a.desc || ""}</p>
-          <button onclick='editAnime("${d.id}", ${JSON.stringify(a)})'>✏️ Edit</button>
-          <button class="delete" onclick='deleteAnime("${d.id}")'>🗑 Remove</button>
-        </div>
-      `;
-    });
-  }
-
+window.addAnime = async () => {
+  await addDoc(collection(db,"anime"),{
+    title: title.value,
+    image: image.value,
+    video: video.value
+  });
+  title.value=""; image.value=""; video.value="";
   loadAnime();
+};
+
+window.openSeason = (id) => {
+  localStorage.setItem("animeId", id);
+  location.href = "season.html";
+};
+
+window.deleteAnime = async (id) => {
+  if(confirm("Delete anime?")){
+    await deleteDoc(doc(db,"anime",id));
+    loadAnime();
+  }
+};
+
+async function loadAnime(){
+  animeList.innerHTML="";
+  const snap = await getDocs(collection(db,"anime"));
+  snap.forEach(d=>{
+    const a=d.data();
+    animeList.innerHTML+=`
+      <div class="card">
+        <h3>${a.title}</h3>
+        <button class="season" onclick="openSeason('${d.id}')">
+          📂 Manage Seasons
+        </button>
+        <button class="delete" onclick="deleteAnime('${d.id}')">
+          🗑 Delete
+        </button>
+      </div>`;
+  });
+}
+loadAnime();
 </script>
 
 </body>
