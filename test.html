@@ -1,48 +1,52 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>ANIMO – Firebase Test</title>
+  <title>ANIMO</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: Arial;
+      background: #0f172a;
+      color: white;
+      margin: 0;
+      padding: 16px;
+    }
+    .card {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    img {
+      width: 100%;
+      border-radius: 8px;
+    }
+  </style>
 </head>
+
 <body>
+  <h2>🔥 ANIMO</h2>
+  <div id="animeList">Loading...</div>
 
-<h2>ANIMO – Firebase Test</h2>
-<p id="status">⏳ Testing Firebase connection...</p>
+  <script type="module">
+    import { db } from "./js/firebase.js";
+    import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-<script type="module">
-  // Firebase SDKs
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+    const list = document.getElementById("animeList");
+    list.innerHTML = "";
 
-  // Firebase config
-  const firebaseConfig = {
-    apiKey: "AIzaSyDRDsqBFjIXp6mh8LO431Usd-Rmpw5pTDM",
-    authDomain: "animo-ab129.firebaseapp.com",
-    projectId: "animo-ab129",
-    storageBucket: "animo-ab129.firebasestorage.app",
-    messagingSenderId: "806187073262",
-    appId: "1:806187073262:web:28fb98cbf9a25a214ffdff"
-  };
+    const querySnapshot = await getDocs(collection(db, "anime"));
 
-  try {
-    // Init Firebase
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    // Write test data
-    await setDoc(doc(db, "test", "hello"), {
-      message: "Firebase connected successfully",
-      time: new Date().toISOString()
+    querySnapshot.forEach(doc => {
+      const data = doc.data();
+      list.innerHTML += `
+        <div class="card">
+          <img src="${data.poster}">
+          <h3>${data.title}</h3>
+          <p>Views: ${data.views}</p>
+        </div>
+      `;
     });
-
-    document.getElementById("status").innerText =
-      "✅ Firebase connected & Firestore write SUCCESS";
-
-  } catch (error) {
-    console.error(error);
-    document.getElementById("status").innerText =
-      "❌ Firebase error: " + error.message;
-  }
-</script>
-
+  </script>
 </body>
 </html>
