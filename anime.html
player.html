@@ -1,77 +1,138 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ANIMO – Anime</title>
 
 <style>
-body{margin:0;font-family:Arial;background:#0b1220;color:white}
-header{padding:12px;background:#0f172a;font-size:20px}
-button{padding:10px;border:none;border-radius:8px;font-size:14px}
-.fav{background:#22c55e;color:black}
-.season{padding:10px;border-bottom:1px solid #1e293b}
-.episode{padding:10px;margin:6px 0;background:#111827;border-radius:8px;cursor:pointer}
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#0b1220;
+  color:#fff;
+}
+header{
+  padding:14px;
+  background:#0f172a;
+  font-size:20px;
+  font-weight:bold;
+}
+.back{
+  color:#60a5fa;
+  cursor:pointer;
+  font-size:14px;
+}
+.container{
+  padding:14px;
+}
+.season{
+  margin-top:16px;
+}
+.season h3{
+  margin-bottom:8px;
+}
+.episode{
+  padding:12px;
+  margin-bottom:8px;
+  background:#111827;
+  border-radius:8px;
+  cursor:pointer;
+}
+.episode:hover{
+  background:#1f2937;
+}
 </style>
 </head>
 
 <body>
 
-<header id="title">Anime</header>
-<button class="fav" id="favBtn">+ My List</button>
+<header>
+  <span class="back" onclick="goBack()">← Back</span>
+  <div id="animeTitle">Anime</div>
+</header>
 
-<div id="content"></div>
+<div class="container" id="content"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
+/* 🔥 FIREBASE CONFIG */
 const firebaseConfig = {
-  apiKey:"YOUR_API_KEY",
-  authDomain:"animo-ab129.firebaseapp.com",
-  projectId:"animo-ab129",
+  apiKey: "AIzaSyDRDsqBFjIXp6mh8LO431Usd-Rmpw5pTDM",
+  authDomain: "animo-ab129.firebaseapp.com",
+  projectId: "animo-ab129",
+  storageBucket: "animo-ab129.appspot.com",
+  messagingSenderId: "806187073262",
+  appId: "1:806187073262:web:28fb98cbf9a25a214ffdff"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+/* 🔐 CHECK LOGIN */
+onAuthStateChanged(auth, user => {
+  if(!user){
+    window.location.href = "index.html";
+  }
+});
+
+/* 📦 GET ANIME ID */
 const animeId = localStorage.getItem("animeId");
-const user = auth.currentUser;
+if(!animeId){
+  alert("Anime not selected");
+  window.location.href = "home.html";
+}
+
+/* 📥 LOAD ANIME DATA */
+const animeRef = doc(db, "anime", animeId);
+const animeSnap = await getDoc(animeRef);
+
+if(!animeSnap.exists()){
+  alert("Anime not found");
+  window.location.href = "home.html";
+}
+
+const anime = animeSnap.data();
+document.getElementById("animeTitle").innerText = anime.title;
+
 const content = document.getElementById("content");
 
-const animeRef = doc(db,"anime",animeId);
-const snap = await getDoc(animeRef);
-const anime = snap.data();
+/* 📺 RENDER SEASONS & EPISODES */
+anime.seasons.forEach((season, seasonIndex) => {
+  const seasonDiv = document.createElement("div");
+  seasonDiv.className = "season";
+  seasonDiv.innerHTML = `<h3>${season.name}</h3>`;
 
-document.getElementById("title").innerText = anime.title;
+  season.episodes.forEach((episode, episodeIndex) => {
+    const epDiv = document.createElement("div");
+    epDiv.className = "episode";
+    epDiv.innerText = episode.title;
 
-/* ❤️ ADD TO MY LIST */
-document.getElementById("favBtn").onclick = async ()=>{
-  if(!user) return alert("Login required");
-  await setDoc(doc(db,"users",user.uid,"mylist",animeId),anime);
-  alert("Added to My List");
-};
+    /* ✅ THIS IS THE IMPORTANT PART */
+    epDiv.onclick = () => {
+      localStorage.setItem("videoUrl", episode.videoUrl);
+      localStorage.setItem("videoType", episode.videoType); // "youtube" or "drive"
+      localStorage.setItem("epTitle", episode.title);
+      localStorage.setItem("animeId", animeId);
+      localStorage.setItem("episodeId", seasonIndex + "-" + episodeIndex);
 
-/* 📺 SEASONS & EPISODES */
-anime.seasons.forEach(season=>{
-  const s = document.createElement("div");
-  s.className="season";
-  s.innerHTML=`<h3>${season.name}</h3>`;
-  season.episodes.forEach(ep=>{
-    const e = document.createElement("div");
-    e.className="episode";
-    e.innerText = ep.title;
-    e.onclick=()=>{
-      localStorage.setItem("video",ep.video);
-      localStorage.setItem("epTitle",ep.title);
-      window.location.href="player.html";
+      window.location.href = "player.html";
     };
-    s.appendChild(e);
+
+    seasonDiv.appendChild(epDiv);
   });
-  content.appendChild(s);
+
+  content.appendChild(seasonDiv);
 });
+
+/* 🔙 BACK */
+window.goBack = () => {
+  window.location.href = "home.html";
+};
 </script>
 
 </body>
