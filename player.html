@@ -3,155 +3,87 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ANIMO Player</title>
+<title>ANIMO – Player</title>
 
 <style>
-body{
-  margin:0;
-  background:#000;
-  color:#fff;
-  font-family:Arial, sans-serif;
+body {
+  margin: 0;
+  background: #020617;
+  color: white;
+  font-family: Arial, sans-serif;
 }
-header{
-  padding:12px;
-  background:#0f172a;
-  font-size:16px;
+
+header {
+  padding: 12px;
+  font-size: 20px;
+  font-weight: bold;
 }
-.player-box{
-  width:100%;
-  height:70vh;
-  background:#000;
+
+.back {
+  padding: 10px;
+  color: #60a5fa;
+  cursor: pointer;
 }
-iframe{
-  width:100%;
-  height:100%;
-  border:none;
+
+.player-container {
+  padding: 10px;
 }
-.info{
-  padding:12px;
-  background:#020617;
+
+iframe {
+  width: 100%;
+  height: 220px;
+  border-radius: 12px;
+  border: none;
 }
-.back{
-  color:#60a5fa;
-  cursor:pointer;
-  margin-bottom:8px;
-  display:inline-block;
+
+h2 {
+  margin-top: 15px;
 }
 </style>
 </head>
 
 <body>
 
-<header>
-  <span class="back" onclick="goBack()">← Back</span>
-  <div id="epTitle">Episode</div>
-</header>
+<header>ANIMO</header>
+<div class="back" onclick="goBack()">← Back</div>
 
-<div class="player-box" id="playerBox"></div>
-
-<div class="info">
-  Watching on ANIMO
+<div class="player-container">
+  <h2 id="epTitle"></h2>
+  <iframe id="videoPlayer" allowfullscreen></iframe>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+<script>
+const videoUrl = localStorage.getItem("videoUrl");
+const videoType = localStorage.getItem("videoType");
+const epTitle = localStorage.getItem("epTitle");
 
-/* 🔥 FIREBASE CONFIG (DO NOT CHANGE) */
-const firebaseConfig = {
-  apiKey: "AIzaSyDRDsqBFjIXp6mh8LO431Usd-Rmpw5pTDM",
-  authDomain: "animo-ab129.firebaseapp.com",
-  projectId: "animo-ab129",
-  storageBucket: "animo-ab129.appspot.com",
-  messagingSenderId: "806187073262",
-  appId: "1:806187073262:web:28fb98cbf9a25a214ffdff"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-/* 📦 DATA FROM PREVIOUS PAGE */
-const videoUrl  = localStorage.getItem("videoUrl");
-const videoType = localStorage.getItem("videoType"); // youtube | drive
-const animeId   = localStorage.getItem("animeId");
-const episodeId = localStorage.getItem("episodeId");
-const epTitle   = localStorage.getItem("epTitle");
-
-/* 🧠 BASIC CHECK */
-if(!videoUrl || !videoType){
-  alert("Video data missing");
+if (!videoUrl || !videoType) {
+  alert("Video not found");
+  window.location.href = "home.html";
 }
 
-/* 🎬 SET TITLE */
-document.getElementById("epTitle").innerText = epTitle || "Episode";
+document.getElementById("epTitle").innerText = epTitle;
 
-/* 🎥 LOAD SHOW PLAYER */
-const box = document.getElementById("playerBox");
+const player = document.getElementById("videoPlayer");
 
-if(videoType === "youtube"){
-  box.innerHTML = `
-    <iframe 
-      src="${videoUrl}" 
-      allow="autoplay; encrypted-media"
-      allowfullscreen>
-    </iframe>
-  `;
+/* VIDEO TYPE HANDLING */
+if (videoType === "youtube") {
+  player.src = videoUrl;
 }
-else if(videoType === "drive"){
-  box.innerHTML = `
-    <iframe 
-      src="${videoUrl}"
-      allowfullscreen>
-    </iframe>
-  `;
+else if (videoType === "drive") {
+  player.src = videoUrl; 
 }
-else{
-  box.innerHTML = "<p>Unsupported video type</p>";
+else if (videoType === "telegram") {
+  player.src = videoUrl;
+}
+else {
+  alert("Unsupported video type");
 }
 
-/* 👤 USER + HISTORY + LEADERBOARD */
-onAuthStateChanged(auth, async (user)=>{
-  if(!user) return;
-
-  const uid = user.uid;
-
-  /* 📜 SAVE WATCH HISTORY */
-  await setDoc(
-    doc(db,"users",uid,"history",Date.now().toString()),
-    {
-      animeId: animeId,
-      episodeId: episodeId,
-      title: epTitle,
-      watchedAt: new Date()
-    }
-  );
-
-  /* 🏆 UPDATE USER WATCH COUNT */
-  await updateDoc(
-    doc(db,"users",uid),
-    { totalWatch: increment(1) }
-  ).catch(async ()=>{
-    await setDoc(doc(db,"users",uid),{
-      email: user.email,
-      totalWatch: 1
-    });
-  });
-
-  /* 🔥 UPDATE ANIME POPULARITY */
-  if(animeId){
-    await updateDoc(
-      doc(db,"anime",animeId),
-      { views: increment(1) }
-    ).catch(()=>{});
-  }
-});
-
-/* 🔙 BACK */
-window.goBack = ()=>{
+/* BACK BUTTON */
+function goBack() {
   history.back();
-};
+}
 </script>
 
 </body>
