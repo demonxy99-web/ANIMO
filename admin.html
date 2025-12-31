@@ -1,20 +1,63 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>ANIMO Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h2>Add Anime</h2>
+<header>ANIMO Admin</header>
 
-<input id="title" placeholder="Anime Title"><br><br>
-<input id="image" placeholder="Image URL"><br><br>
-<textarea id="desc" placeholder="Description"></textarea><br><br>
+<div class="container">
+  <div class="admin-box">
+    <input id="title" placeholder="Anime Title">
+    <input id="image" placeholder="Image URL">
+    <textarea id="desc" placeholder="Description"></textarea>
+    <button id="addBtn">Add Anime</button>
+  </div>
+</div>
 
-<button id="addBtn">Add Anime</button>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-<p id="status"></p>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDRDsqBFjIXp6mh8LO431Usd-Rmpw5pTDM",
+    authDomain: "animo-ab129.firebaseapp.com",
+    projectId: "animo-ab129",
+    storageBucket: "animo-ab129.firebasestorage.app",
+    messagingSenderId: "806187073262",
+    appId: "1:806187073262:web:28fb98cbf9a25a214ffdff"
+  };
 
-<script type="module" src="./js/admin.js"></script>
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  document.getElementById("addBtn").onclick = async () => {
+    const title = document.getElementById("title").value;
+    const image = document.getElementById("image").value;
+    const desc = document.getElementById("desc").value;
+
+    if (!title || !image) {
+      alert("Title & Image required");
+      return;
+    }
+
+    await addDoc(collection(db, "anime"), {
+      title: title,
+      image: image,
+      description: desc,
+      created: new Date()
+    });
+
+    alert("Anime added successfully!");
+    document.getElementById("title").value = "";
+    document.getElementById("image").value = "";
+    document.getElementById("desc").value = "";
+  };
+</script>
+
 </body>
 </html>
