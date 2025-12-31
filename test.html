@@ -1,30 +1,46 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title>ANIMO Firebase Test</title>
+  <title>ANIMO – Firebase Test</title>
 </head>
 <body>
 
 <h2>ANIMO – Firebase Test</h2>
-<p id="status">Testing Firebase connection...</p>
+<p id="status">⏳ Testing Firebase connection...</p>
 
 <script type="module">
-  import { db } from "./js/firebase.js";
-  import { collection, addDoc } from
-  "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  // Firebase SDKs
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+  // Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyDRDsqBFjIXp6mh8LO431Usd-Rmpw5pTDM",
+    authDomain: "animo-ab129.firebaseapp.com",
+    projectId: "animo-ab129",
+    storageBucket: "animo-ab129.firebasestorage.app",
+    messagingSenderId: "806187073262",
+    appId: "1:806187073262:web:28fb98cbf9a25a214ffdff"
+  };
 
   try {
-    await addDoc(collection(db, "test"), {
-      message: "Firebase working",
-      time: new Date()
+    // Init Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Write test data
+    await setDoc(doc(db, "test", "hello"), {
+      message: "Firebase connected successfully",
+      time: new Date().toISOString()
     });
+
     document.getElementById("status").innerText =
-      "✅ Firebase connected successfully!";
-  } catch (e) {
+      "✅ Firebase connected & Firestore write SUCCESS";
+
+  } catch (error) {
+    console.error(error);
     document.getElementById("status").innerText =
-      "❌ Firebase error (check console)";
-    console.error(e);
+      "❌ Firebase error: " + error.message;
   }
 </script>
 
