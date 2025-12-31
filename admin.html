@@ -28,6 +28,11 @@
       color: black;
       font-weight: bold;
     }
+    .delete {
+      background: #ef4444;
+      color: white;
+      margin-top: 6px;
+    }
     .card {
       background: #1e293b;
       padding: 12px;
@@ -55,10 +60,16 @@
 
 <div id="animeList"></div>
 
-<!-- Firebase -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+  import {
+    getFirestore,
+    collection,
+    addDoc,
+    getDocs,
+    deleteDoc,
+    doc
+  } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDRDsqBFjIXp6mh8LO431Usd-Rmpw5pTDM",
@@ -83,13 +94,22 @@
     }
 
     await addDoc(collection(db, "anime"), {
-      title: title,
-      image: image,
-      desc: desc,
+      title,
+      image,
+      desc,
       time: new Date()
     });
 
-    alert("Anime added ✅");
+    document.getElementById("title").value = "";
+    document.getElementById("image").value = "";
+    document.getElementById("desc").value = "";
+
+    loadAnime();
+  };
+
+  window.deleteAnime = async function (id) {
+    if (!confirm("Delete this anime?")) return;
+    await deleteDoc(doc(db, "anime", id));
     loadAnime();
   };
 
@@ -98,13 +118,14 @@
     list.innerHTML = "";
 
     const querySnapshot = await getDocs(collection(db, "anime"));
-    querySnapshot.forEach(doc => {
-      const a = doc.data();
+    querySnapshot.forEach(d => {
+      const a = d.data();
       list.innerHTML += `
         <div class="card">
           <h3>${a.title}</h3>
           <img src="${a.image}">
           <p>${a.desc || ""}</p>
+          <button class="delete" onclick="deleteAnime('${d.id}')">Remove</button>
         </div>
       `;
     });
