@@ -1,39 +1,124 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>ANIMO – Home</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body {
-      background:#0b1020;
-      color:white;
-      font-family:sans-serif;
-      padding:20px;
-    }
-    .anime {
-      width:160px;
-      cursor:pointer;
-    }
-    img {
-      width:100%;
-      border-radius:10px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>ANIMO – Home</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+*{
+  box-sizing:border-box;
+  font-family:Arial, sans-serif;
+}
+
+body{
+  margin:0;
+  background:#0b1020;
+  color:white;
+}
+
+/* HEADER */
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:15px;
+  background:#060914;
+}
+
+header h1{
+  margin:0;
+  color:#22c55e;
+}
+
+.logout{
+  background:#22c55e;
+  border:none;
+  padding:8px 14px;
+  border-radius:6px;
+  font-size:14px;
+}
+
+/* SEARCH */
+.search-box{
+  padding:15px;
+}
+
+.search-box input{
+  width:100%;
+  padding:12px;
+  border-radius:8px;
+  border:none;
+  font-size:16px;
+}
+
+/* SECTION */
+.section-title{
+  padding:0 15px;
+  font-size:18px;
+  margin-top:10px;
+}
+
+/* GRID */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:15px;
+  padding:15px;
+}
+
+.card{
+  background:#11162a;
+  border-radius:10px;
+  overflow:hidden;
+  cursor:pointer;
+}
+
+.card img{
+  width:100%;
+  height:220px;
+  object-fit:cover;
+}
+
+.card p{
+  padding:10px;
+  margin:0;
+  font-weight:bold;
+}
+</style>
 </head>
 
 <body>
 
-<h2>🔥 Popular Anime</h2>
+<header>
+  <h1>ANIMO</h1>
+  <button class="logout" onclick="logout()">Logout</button>
+</header>
 
-<div class="anime" onclick="openAnime()">
-  <img src="https://i.imgur.com/4M34hi2.jpg">
-  <p>Tokyo Revengers</p>
+<div class="search-box">
+  <input type="text" placeholder="Search anime... (coming soon)">
+</div>
+
+<h2 class="section-title">🔥 Popular Anime</h2>
+
+<div class="grid">
+
+  <div class="card" onclick="openAnime('Tokyo Revengers')">
+    <img src="https://i.imgur.com/4M34hi2.jpg">
+    <p>Tokyo Revengers</p>
+  </div>
+
 </div>
 
 <script>
-function openAnime(){
-  localStorage.setItem("animeTitle","Tokyo Revengers");
+function openAnime(name){
+  localStorage.setItem("animeTitle",name);
   window.location.href="anime.html";
+}
+
+function logout(){
+  localStorage.clear();
+  window.location.href="index.html";
 }
 </script>
 
