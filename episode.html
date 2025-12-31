@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Manage Episodes</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body style="background:#0f172a;color:white;padding:16px;font-family:Arial;">
+
+<h2>🎬 Episodes</h2>
+
+<input id="epTitle" placeholder="Episode 1 Title">
+<input id="epVideo" placeholder="Episode Video Link (YouTube / MP4)">
+<button onclick="addEpisode()">Add Episode</button>
+
+<hr>
+
+<div id="episodeList"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, getDocs
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDRDsqBFjIXp6mh8LO431Usd-Rmpw5pTDM",
+  authDomain: "animo-ab129.firebaseapp.com",
+  projectId: "animo-ab129",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const animeId = localStorage.getItem("animeId");
+const seasonId = localStorage.getItem("seasonId");
+
+window.addEpisode = async () => {
+  if (!epTitle.value || !epVideo.value) {
+    alert("Enter title and video link");
+    return;
+  }
+
+  await addDoc(
+    collection(db,"anime",animeId,"seasons",seasonId,"episodes"),
+    {
+      title: epTitle.value,
+      video: epVideo.value
+    }
+  );
+
+  epTitle.value="";
+  epVideo.value="";
+  loadEpisodes();
+};
+
+async function loadEpisodes(){
+  episodeList.innerHTML="";
+  const snap = await getDocs(
+    collection(db,"anime",animeId,"seasons",seasonId,"episodes")
+  );
+
+  snap.forEach(d=>{
+    const e = d.data();
+    episodeList.innerHTML+=`
+      <div style="background:#1e293b;padding:10px;border-radius:6px;margin-top:10px;">
+        <b>${e.title}</b><br>
+        <small>🎥 ${e.video}</small>
+      </div>`;
+  });
+}
+loadEpisodes();
+</script>
+
+</body>
+</html>
