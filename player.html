@@ -1,60 +1,157 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ANIMO – Player</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ANIMO Player</title>
 
 <style>
-body{margin:0;background:black;color:white;font-family:Arial}
-header{padding:10px;background:#0f172a}
-video,iframe{width:100%;height:70vh}
+body{
+  margin:0;
+  background:#000;
+  color:#fff;
+  font-family:Arial, sans-serif;
+}
+header{
+  padding:12px;
+  background:#0f172a;
+  font-size:16px;
+}
+.player-box{
+  width:100%;
+  height:70vh;
+  background:#000;
+}
+iframe{
+  width:100%;
+  height:100%;
+  border:none;
+}
+.info{
+  padding:12px;
+  background:#020617;
+}
+.back{
+  color:#60a5fa;
+  cursor:pointer;
+  margin-bottom:8px;
+  display:inline-block;
+}
 </style>
 </head>
 
 <body>
 
-<header id="title">Episode</header>
+<header>
+  <span class="back" onclick="goBack()">← Back</span>
+  <div id="epTitle">Episode</div>
+</header>
 
-<div id="player"></div>
+<div class="player-box" id="playerBox"></div>
+
+<div class="info">
+  Watching on ANIMO
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
-import { getFirestore, setDoc, doc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
+/* 🔥 FIREBASE CONFIG (DO NOT CHANGE) */
 const firebaseConfig = {
-  apiKey:"YOUR_API_KEY",
-  authDomain:"animo-ab129.firebaseapp.com",
-  projectId:"animo-ab129",
+  apiKey: "AIzaSyDRDsqBFjIXp6mh8LO431Usd-Rmpw5pTDM",
+  authDomain: "animo-ab129.firebaseapp.com",
+  projectId: "animo-ab129",
+  storageBucket: "animo-ab129.appspot.com",
+  messagingSenderId: "806187073262",
+  appId: "1:806187073262:web:28fb98cbf9a25a214ffdff"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const video = localStorage.getItem("video");
-const title = localStorage.getItem("epTitle");
-document.getElementById("title").innerText = title;
+/* 📦 DATA FROM PREVIOUS PAGE */
+const videoUrl  = localStorage.getItem("videoUrl");
+const videoType = localStorage.getItem("videoType"); // youtube | drive
+const animeId   = localStorage.getItem("animeId");
+const episodeId = localStorage.getItem("episodeId");
+const epTitle   = localStorage.getItem("epTitle");
 
-/* 🎥 VIDEO SOURCES */
-const p = document.getElementById("player");
-
-if(video.includes("youtube")){
-  p.innerHTML = `<iframe src="${video}" allowfullscreen></iframe>`;
-}else{
-  p.innerHTML = `<video controls src="${video}"></video>`;
+/* 🧠 BASIC CHECK */
+if(!videoUrl || !videoType){
+  alert("Video data missing");
 }
 
-/* 🕒 WATCH HISTORY */
-const user = auth.currentUser;
-if(user){
-  await setDoc(doc(db,"users",user.uid,"history",Date.now().toString()),{
-    title:title,
-    video:video,
-    time:new Date()
+/* 🎬 SET TITLE */
+document.getElementById("epTitle").innerText = epTitle || "Episode";
+
+/* 🎥 LOAD SHOW PLAYER */
+const box = document.getElementById("playerBox");
+
+if(videoType === "youtube"){
+  box.innerHTML = `
+    <iframe 
+      src="${videoUrl}" 
+      allow="autoplay; encrypted-media"
+      allowfullscreen>
+    </iframe>
+  `;
+}
+else if(videoType === "drive"){
+  box.innerHTML = `
+    <iframe 
+      src="${videoUrl}"
+      allowfullscreen>
+    </iframe>
+  `;
+}
+else{
+  box.innerHTML = "<p>Unsupported video type</p>";
+}
+
+/* 👤 USER + HISTORY + LEADERBOARD */
+onAuthStateChanged(auth, async (user)=>{
+  if(!user) return;
+
+  const uid = user.uid;
+
+  /* 📜 SAVE WATCH HISTORY */
+  await setDoc(
+    doc(db,"users",uid,"history",Date.now().toString()),
+    {
+      animeId: animeId,
+      episodeId: episodeId,
+      title: epTitle,
+      watchedAt: new Date()
+    }
+  );
+
+  /* 🏆 UPDATE USER WATCH COUNT */
+  await updateDoc(
+    doc(db,"users",uid),
+    { totalWatch: increment(1) }
+  ).catch(async ()=>{
+    await setDoc(doc(db,"users",uid),{
+      email: user.email,
+      totalWatch: 1
+    });
   });
-}
+
+  /* 🔥 UPDATE ANIME POPULARITY */
+  if(animeId){
+    await updateDoc(
+      doc(db,"anime",animeId),
+      { views: increment(1) }
+    ).catch(()=>{});
+  }
+});
+
+/* 🔙 BACK */
+window.goBack = ()=>{
+  history.back();
+};
 </script>
 
 </body>
