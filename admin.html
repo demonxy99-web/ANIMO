@@ -24,14 +24,20 @@
       border: none;
     }
     button {
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .add {
       background: #22c55e;
       color: black;
-      font-weight: bold;
+    }
+    .update {
+      background: #38bdf8;
+      color: black;
     }
     .delete {
       background: #ef4444;
       color: white;
-      margin-top: 6px;
     }
     .card {
       background: #1e293b;
@@ -55,7 +61,8 @@
 <input id="video" placeholder="Video Link (YouTube / MP4)">
 <textarea id="desc" placeholder="Description"></textarea>
 
-<button onclick="addAnime()">Add Anime</button>
+<button class="add" onclick="addAnime()">Add Anime</button>
+<button class="update" onclick="updateAnime()" style="display:none;">Update Anime</button>
 
 <hr>
 
@@ -69,6 +76,7 @@
     addDoc,
     getDocs,
     deleteDoc,
+    updateDoc,
     doc
   } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
@@ -84,30 +92,51 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
+  let editId = null;
+
   window.addAnime = async function () {
-    const title = document.getElementById("title").value;
-    const image = document.getElementById("image").value;
-    const video = document.getElementById("video").value;
-    const desc = document.getElementById("desc").value;
+    const title = titleInput.value;
+    const image = imageInput.value;
+    const video = videoInput.value;
+    const desc = descInput.value;
 
     if (!title || !image || !video) {
-      alert("Title, image and video link are required");
+      alert("Title, image & video required");
       return;
     }
 
     await addDoc(collection(db, "anime"), {
-      title,
-      image,
-      video,
-      desc,
-      time: new Date()
+      title, image, video, desc, time: new Date()
     });
 
-    document.getElementById("title").value = "";
-    document.getElementById("image").value = "";
-    document.getElementById("video").value = "";
-    document.getElementById("desc").value = "";
+    clearForm();
+    loadAnime();
+  };
 
+  window.editAnime = function (id, data) {
+    editId = id;
+    titleInput.value = data.title;
+    imageInput.value = data.image;
+    videoInput.value = data.video;
+    descInput.value = data.desc || "";
+
+    document.querySelector(".add").style.display = "none";
+    document.querySelector(".update").style.display = "block";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  window.updateAnime = async function () {
+    if (!editId) return;
+
+    await updateDoc(doc(db, "anime", editId), {
+      title: titleInput.value,
+      image: imageInput.value,
+      video: videoInput.value,
+      desc: descInput.value
+    });
+
+    editId = null;
+    clearForm();
     loadAnime();
   };
 
@@ -117,20 +146,34 @@
     loadAnime();
   };
 
+  function clearForm() {
+    titleInput.value = "";
+    imageInput.value = "";
+    videoInput.value = "";
+    descInput.value = "";
+    document.querySelector(".add").style.display = "block";
+    document.querySelector(".update").style.display = "none";
+  }
+
+  const titleInput = document.getElementById("title");
+  const imageInput = document.getElementById("image");
+  const videoInput = document.getElementById("video");
+  const descInput = document.getElementById("desc");
+
   async function loadAnime() {
     const list = document.getElementById("animeList");
     list.innerHTML = "";
 
-    const querySnapshot = await getDocs(collection(db, "anime"));
-    querySnapshot.forEach(d => {
+    const snap = await getDocs(collection(db, "anime"));
+    snap.forEach(d => {
       const a = d.data();
       list.innerHTML += `
         <div class="card">
           <h3>${a.title}</h3>
           <img src="${a.image}">
           <p>${a.desc || ""}</p>
-          <p style="font-size:12px;color:#94a3b8;">🎥 ${a.video}</p>
-          <button class="delete" onclick="deleteAnime('${d.id}')">Remove</button>
+          <button onclick='editAnime("${d.id}", ${JSON.stringify(a)})'>✏️ Edit</button>
+          <button class="delete" onclick='deleteAnime("${d.id}")'>🗑 Remove</button>
         </div>
       `;
     });
