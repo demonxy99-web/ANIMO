@@ -1,17 +1,54 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Manage Episodes</title>
+  <title>ANIMO – Episodes</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      background: #0f172a;
+      color: white;
+      font-family: Arial;
+      padding: 16px;
+    }
+    h2 {
+      text-align: center;
+      color: #38bdf8;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 6px;
+      border: none;
+    }
+    button {
+      background: #22c55e;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .card {
+      background: #1e293b;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 12px;
+    }
+    .play {
+      background: #6366f1;
+      color: white;
+      margin-top: 6px;
+    }
+  </style>
 </head>
 
-<body style="background:#0f172a;color:white;padding:16px;font-family:Arial;">
+<body>
 
 <h2>🎬 Episodes</h2>
 
-<input id="epTitle" placeholder="Episode 1 Title">
-<input id="epVideo" placeholder="Episode Video Link (YouTube / MP4)">
+<input id="epTitle" placeholder="Episode Title (Ep 1)">
+<input id="epVideo" placeholder="Video Link (YouTube / MP4)">
+
 <button onclick="addEpisode()">Add Episode</button>
 
 <hr>
@@ -19,58 +56,73 @@
 <div id="episodeList"></div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-import {
-  getFirestore, collection, addDoc, getDocs
-} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+  import {
+    getFirestore,
+    collection,
+    addDoc,
+    getDocs
+  } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDRDsqBFjIXp6mh8LO431Usd-Rmpw5pTDM",
-  authDomain: "animo-ab129.firebaseapp.com",
-  projectId: "animo-ab129",
-};
+  const firebaseConfig = {
+    apiKey: "AIzaSyDRDsqBFjIXp6mh8LO431Usd-Rmpw5pTDM",
+    authDomain: "animo-ab129.firebaseapp.com",
+    projectId: "animo-ab129"
+  };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-const animeId = localStorage.getItem("animeId");
-const seasonId = localStorage.getItem("seasonId");
+  const animeId = localStorage.getItem("animeId");
+  const seasonId = localStorage.getItem("seasonId");
 
-window.addEpisode = async () => {
-  if (!epTitle.value || !epVideo.value) {
-    alert("Enter title and video link");
-    return;
+  window.addEpisode = async () => {
+    if (!epTitle.value || !epVideo.value) {
+      alert("Enter title and video link");
+      return;
+    }
+
+    await addDoc(
+      collection(db, "anime", animeId, "seasons", seasonId, "episodes"),
+      {
+        title: epTitle.value,
+        video: epVideo.value
+      }
+    );
+
+    epTitle.value = "";
+    epVideo.value = "";
+    loadEpisodes();
+  };
+
+  window.playEpisode = (title, video) => {
+    localStorage.setItem("epTitle", title);
+    localStorage.setItem("epVideo", video);
+    location.href = "player.html";
+  };
+
+  async function loadEpisodes() {
+    episodeList.innerHTML = "";
+
+    const snap = await getDocs(
+      collection(db, "anime", animeId, "seasons", seasonId, "episodes")
+    );
+
+    snap.forEach(d => {
+      const e = d.data();
+      episodeList.innerHTML += `
+        <div class="card">
+          <b>${e.title}</b>
+          <button class="play"
+            onclick="playEpisode('${e.title}','${e.video}')">
+            ▶ Play
+          </button>
+        </div>
+      `;
+    });
   }
 
-  await addDoc(
-    collection(db,"anime",animeId,"seasons",seasonId,"episodes"),
-    {
-      title: epTitle.value,
-      video: epVideo.value
-    }
-  );
-
-  epTitle.value="";
-  epVideo.value="";
   loadEpisodes();
-};
-
-async function loadEpisodes(){
-  episodeList.innerHTML="";
-  const snap = await getDocs(
-    collection(db,"anime",animeId,"seasons",seasonId,"episodes")
-  );
-
-  snap.forEach(d=>{
-    const e = d.data();
-    episodeList.innerHTML+=`
-      <div style="background:#1e293b;padding:10px;border-radius:6px;margin-top:10px;">
-        <b>${e.title}</b><br>
-        <small>🎥 ${e.video}</small>
-      </div>`;
-  });
-}
-loadEpisodes();
 </script>
 
 </body>
