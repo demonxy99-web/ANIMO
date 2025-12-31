@@ -1,32 +1,56 @@
 body {
   margin: 0;
-  background: #0b1220;
+  font-family: sans-serif;
+  background: #0b1020;
   color: white;
-  font-family: Arial;
 }
 
-.container {
-  max-width: 400px;
-  margin: 80px auto;
-  padding: 20px;
-  background: #111a2e;
-  border-radius: 12px;
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px;
+  background: #121a35;
 }
 
-h1 {
-  text-align: center;
-}
-
-input, button {
-  width: 100%;
-  padding: 12px;
-  margin: 10px 0;
+.top-bar input {
+  padding: 8px;
   border-radius: 8px;
   border: none;
 }
 
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px,1fr));
+  gap: 15px;
+  padding: 15px;
+}
+
+.card {
+  background: #1b2348;
+  padding: 10px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.card img {
+  width: 100%;
+  border-radius: 10px;
+}
+
+.auth-box {
+  max-width: 320px;
+  margin: 100px auto;
+  background: #121a35;
+  padding: 20px;
+  border-radius: 12px;
+}
+
 button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
   background: #22c55e;
-  color: black;
-  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
 }
