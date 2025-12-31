@@ -5,12 +5,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
-<body style="background:#0f172a;color:white;padding:16px;">
 
-<h2>Seasons</h2>
+<body style="background:#0f172a;color:white;padding:16px;font-family:Arial;">
+
+<h2>📂 Seasons</h2>
 
 <input id="seasonName" placeholder="Season 1">
 <button onclick="addSeason()">Add Season</button>
+
+<hr>
 
 <div id="seasonList"></div>
 
@@ -32,6 +35,7 @@ const db = getFirestore(app);
 const animeId = localStorage.getItem("animeId");
 
 window.addSeason = async () => {
+  if (!seasonName.value) return alert("Enter season name");
   await addDoc(collection(db,"anime",animeId,"seasons"),{
     name: seasonName.value
   });
@@ -39,11 +43,22 @@ window.addSeason = async () => {
   loadSeasons();
 };
 
+window.openEpisodes = (seasonId) => {
+  localStorage.setItem("seasonId", seasonId);
+  location.href = "episode.html";
+};
+
 async function loadSeasons(){
   seasonList.innerHTML="";
   const snap = await getDocs(collection(db,"anime",animeId,"seasons"));
   snap.forEach(d=>{
-    seasonList.innerHTML+=`<p>📁 ${d.data().name}</p>`;
+    seasonList.innerHTML+=`
+      <div style="margin-top:10px;background:#1e293b;padding:10px;border-radius:6px;">
+        <b>${d.data().name}</b><br>
+        <button onclick="openEpisodes('${d.id}')">
+          🎬 Manage Episodes
+        </button>
+      </div>`;
   });
 }
 loadSeasons();
