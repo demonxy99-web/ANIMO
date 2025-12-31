@@ -8,13 +8,13 @@
   <style>
     body {
       margin: 0;
-      background: #000;
+      background: black;
       color: white;
       font-family: Arial;
     }
     header {
-      padding: 12px;
       background: #020617;
+      padding: 12px;
       text-align: center;
       font-size: 18px;
       font-weight: bold;
@@ -54,22 +54,21 @@
 
   const player = document.getElementById("player");
 
-  // If YouTube link
   if (video && video.includes("youtube")) {
-    const videoId = video.split("v=")[1];
+    const id = video.split("v=")[1];
     player.innerHTML = `
-      <iframe 
-        src="https://www.youtube.com/embed/${videoId}?autoplay=1"
+      <iframe
+        src="https://www.youtube.com/embed/${id}?autoplay=1"
         allowfullscreen
         allow="autoplay">
-      </iframe>`;
-  } 
-  // If direct MP4
-  else {
+      </iframe>
+    `;
+  } else {
     player.innerHTML = `
       <video controls autoplay>
         <source src="${video}" type="video/mp4">
-      </video>`;
+      </video>
+    `;
   }
 </script>
 
