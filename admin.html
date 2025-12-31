@@ -1,27 +1,64 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
   <title>ANIMO Admin</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: white;
+      padding: 16px;
+    }
+    h1 {
+      text-align: center;
+      color: #38bdf8;
+    }
+    input, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 6px;
+      border: none;
+    }
+    button {
+      background: #22c55e;
+      color: black;
+      font-weight: bold;
+    }
+    .card {
+      background: #1e293b;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 12px;
+    }
+    img {
+      width: 100%;
+      border-radius: 6px;
+    }
+  </style>
 </head>
+
 <body>
 
-<header>ANIMO Admin</header>
+<h1>ANIMO Admin Panel</h1>
 
-<div class="container">
-  <div class="admin-box">
-    <input id="title" placeholder="Anime Title">
-    <input id="image" placeholder="Image URL">
-    <textarea id="desc" placeholder="Description"></textarea>
-    <button id="addBtn">Add Anime</button>
-  </div>
-</div>
+<input id="title" placeholder="Anime Title">
+<input id="image" placeholder="Image URL">
+<textarea id="desc" placeholder="Description"></textarea>
 
+<button onclick="addAnime()">Add Anime</button>
+
+<hr>
+
+<div id="animeList"></div>
+
+<!-- Firebase -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDRDsqBFjIXp6mh8LO431Usd-Rmpw5pTDM",
@@ -35,28 +72,45 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  document.getElementById("addBtn").onclick = async () => {
+  window.addAnime = async function () {
     const title = document.getElementById("title").value;
     const image = document.getElementById("image").value;
     const desc = document.getElementById("desc").value;
 
     if (!title || !image) {
-      alert("Title & Image required");
+      alert("Fill title and image");
       return;
     }
 
     await addDoc(collection(db, "anime"), {
       title: title,
       image: image,
-      description: desc,
-      created: new Date()
+      desc: desc,
+      time: new Date()
     });
 
-    alert("Anime added successfully!");
-    document.getElementById("title").value = "";
-    document.getElementById("image").value = "";
-    document.getElementById("desc").value = "";
+    alert("Anime added ✅");
+    loadAnime();
   };
+
+  async function loadAnime() {
+    const list = document.getElementById("animeList");
+    list.innerHTML = "";
+
+    const querySnapshot = await getDocs(collection(db, "anime"));
+    querySnapshot.forEach(doc => {
+      const a = doc.data();
+      list.innerHTML += `
+        <div class="card">
+          <h3>${a.title}</h3>
+          <img src="${a.image}">
+          <p>${a.desc || ""}</p>
+        </div>
+      `;
+    });
+  }
+
+  loadAnime();
 </script>
 
 </body>
