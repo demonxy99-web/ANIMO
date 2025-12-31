@@ -51,7 +51,8 @@
 <h1>ANIMO Admin Panel</h1>
 
 <input id="title" placeholder="Anime Title">
-<input id="image" placeholder="Image URL">
+<input id="image" placeholder="Poster Image URL">
+<input id="video" placeholder="Video Link (YouTube / MP4)">
 <textarea id="desc" placeholder="Description"></textarea>
 
 <button onclick="addAnime()">Add Anime</button>
@@ -86,22 +87,25 @@
   window.addAnime = async function () {
     const title = document.getElementById("title").value;
     const image = document.getElementById("image").value;
+    const video = document.getElementById("video").value;
     const desc = document.getElementById("desc").value;
 
-    if (!title || !image) {
-      alert("Fill title and image");
+    if (!title || !image || !video) {
+      alert("Title, image and video link are required");
       return;
     }
 
     await addDoc(collection(db, "anime"), {
       title,
       image,
+      video,
       desc,
       time: new Date()
     });
 
     document.getElementById("title").value = "";
     document.getElementById("image").value = "";
+    document.getElementById("video").value = "";
     document.getElementById("desc").value = "";
 
     loadAnime();
@@ -125,6 +129,7 @@
           <h3>${a.title}</h3>
           <img src="${a.image}">
           <p>${a.desc || ""}</p>
+          <p style="font-size:12px;color:#94a3b8;">🎥 ${a.video}</p>
           <button class="delete" onclick="deleteAnime('${d.id}')">Remove</button>
         </div>
       `;
