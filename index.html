@@ -2,175 +2,63 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>ANIMO</title>
+<title>ANIMO – Login</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
-<style>
-body{
-  margin:0;
-  font-family: Arial, sans-serif;
-  background:#0b1220;
-  color:white;
-}
-header{
-  padding:15px;
-  text-align:center;
-  font-size:26px;
-  font-weight:bold;
-}
-.container{
-  max-width:400px;
-  margin:auto;
-  padding:20px;
-}
-input,button{
-  width:100%;
-  padding:12px;
-  margin-top:10px;
-  border-radius:8px;
-  border:none;
-  font-size:16px;
-}
-input{
-  background:#1c2438;
-  color:white;
-}
-button{
-  background:#22c55e;
-  color:black;
-  font-weight:bold;
-  cursor:pointer;
-}
-button.google{
-  background:white;
-  color:black;
-}
-.link{
-  margin-top:15px;
-  text-align:center;
-  color:#60a5fa;
-  cursor:pointer;
-}
-.hidden{display:none;}
-.card{
-  background:#111827;
-  padding:20px;
-  border-radius:12px;
-}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-
-<header>ANIMO</header>
-
 <div class="container">
+  <h1>ANIMO</h1>
 
-<!-- LOGIN -->
-<div id="loginBox" class="card">
-  <h2>Login</h2>
-  <input id="loginEmail" type="email" placeholder="Email">
-  <input id="loginPassword" type="password" placeholder="Password">
+  <input id="email" type="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+
   <button onclick="login()">Login</button>
-  <button class="google" onclick="googleLogin()">Login with Google</button>
-  <div class="link" onclick="showSignup()">Create account</div>
-</div>
-
-<!-- SIGNUP -->
-<div id="signupBox" class="card hidden">
-  <h2>Sign Up</h2>
-  <input id="signupEmail" type="email" placeholder="Email">
-  <input id="signupPassword" type="password" placeholder="Password">
   <button onclick="signup()">Create Account</button>
-  <div class="link" onclick="showLogin()">Back to login</div>
+  <button onclick="googleLogin()">Login with Google</button>
+
+  <p id="msg"></p>
 </div>
 
-<!-- HOME -->
-<div id="homeBox" class="card hidden">
-  <h2>Welcome 🎉</h2>
-  <p id="userEmail"></p>
-  <button onclick="logout()">Logout</button>
-
-  <hr style="margin:20px 0;opacity:.2">
-
-  <!-- PLACEHOLDERS (features added later) -->
-  <p>📌 My List (coming soon)</p>
-  <p>📺 Watch History (coming soon)</p>
-  <p>🔥 Categories (coming soon)</p>
-</div>
-
-</div>
-
-<!-- FIREBASE -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-import { getAuth, 
-  createUserWithEmailAndPassword,
+import { auth, provider } from "./firebase.js";
+import {
   signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   signInWithPopup,
-  GoogleAuthProvider,
-  onAuthStateChanged,
-  signOut
-} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDRDsqBFjIXp6mh8LO431Usd-Rmpw5pTDM",
-  authDomain: "animo-ab129.firebaseapp.com",
-  projectId: "animo-ab129",
-  storageBucket: "animo-ab129.firebasestorage.app",
-  messagingSenderId: "806187073262",
-  appId: "1:806187073262:web:28fb98cbf9a25a214ffdff"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const provider = new GoogleAuthProvider();
+const msg = document.getElementById("msg");
 
 window.login = () => {
-  signInWithEmailAndPassword(
-    auth,
-    loginEmail.value,
-    loginPassword.value
-  ).catch(e => alert(e.message));
+  signInWithEmailAndPassword(auth,
+    email.value,
+    password.value
+  ).then(() => {
+    location.href = "home.html";
+  }).catch(e => msg.innerText = e.message);
 };
 
 window.signup = () => {
-  createUserWithEmailAndPassword(
-    auth,
-    signupEmail.value,
-    signupPassword.value
-  ).catch(e => alert(e.message));
+  createUserWithEmailAndPassword(auth,
+    email.value,
+    password.value
+  ).then(() => {
+    location.href = "home.html";
+  }).catch(e => msg.innerText = e.message);
 };
 
 window.googleLogin = () => {
   signInWithPopup(auth, provider)
-  .catch(e => alert(e.message));
-};
-
-window.logout = () => signOut(auth);
-
-window.showSignup = () => {
-  loginBox.classList.add("hidden");
-  signupBox.classList.remove("hidden");
-};
-
-window.showLogin = () => {
-  signupBox.classList.add("hidden");
-  loginBox.classList.remove("hidden");
+  .then(() => location.href = "home.html")
+  .catch(e => msg.innerText = e.message);
 };
 
 onAuthStateChanged(auth, user => {
-  if(user){
-    loginBox.classList.add("hidden");
-    signupBox.classList.add("hidden");
-    homeBox.classList.remove("hidden");
-    userEmail.innerText = "Logged in as: " + user.email;
-  }else{
-    homeBox.classList.add("hidden");
-    loginBox.classList.remove("hidden");
-  }
+  if (user) location.href = "home.html";
 });
 </script>
-
 </body>
 </html>
