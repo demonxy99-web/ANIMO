@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Manage Seasons</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body style="background:#0f172a;color:white;padding:16px;">
+
+<h2>Seasons</h2>
+
+<input id="seasonName" placeholder="Season 1">
+<button onclick="addSeason()">Add Season</button>
+
+<div id="seasonList"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, getDocs
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDRDsqBFjIXp6mh8LO431Usd-Rmpw5pTDM",
+  authDomain: "animo-ab129.firebaseapp.com",
+  projectId: "animo-ab129",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const animeId = localStorage.getItem("animeId");
+
+window.addSeason = async () => {
+  await addDoc(collection(db,"anime",animeId,"seasons"),{
+    name: seasonName.value
+  });
+  seasonName.value="";
+  loadSeasons();
+};
+
+async function loadSeasons(){
+  seasonList.innerHTML="";
+  const snap = await getDocs(collection(db,"anime",animeId,"seasons"));
+  snap.forEach(d=>{
+    seasonList.innerHTML+=`<p>📁 ${d.data().name}</p>`;
+  });
+}
+loadSeasons();
+</script>
+
+</body>
+</html>
