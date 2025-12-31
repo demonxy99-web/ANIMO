@@ -1,10 +1,52 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta http-equiv="refresh" content="0; url=./test.html">
+  <meta charset="UTF-8">
   <title>ANIMO</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-Redirecting to ANIMO...
+
+<header>ANIMO</header>
+
+<div class="container">
+  <div id="animeList" class="grid"></div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDRDsqBFjIXp6mh8LO431Usd-Rmpw5pTDM",
+    authDomain: "animo-ab129.firebaseapp.com",
+    projectId: "animo-ab129",
+    storageBucket: "animo-ab129.firebasestorage.app",
+    messagingSenderId: "806187073262",
+    appId: "1:806187073262:web:28fb98cbf9a25a214ffdff"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const animeList = document.getElementById("animeList");
+
+  const querySnapshot = await getDocs(collection(db, "anime"));
+  querySnapshot.forEach((doc) => {
+    const data = doc.data();
+
+    const card = document.createElement("div");
+    card.className = "card";
+
+    card.innerHTML = `
+      <img src="${data.image}" alt="${data.title}">
+      <h3>${data.title}</h3>
+    `;
+
+    animeList.appendChild(card);
+  });
+</script>
+
 </body>
 </html>
