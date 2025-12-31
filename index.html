@@ -2,125 +2,60 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ANIMO</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-:root {
-  --bg: #0b1220;
-  --card: #111827;
-  --primary: #6366f1;
-  --text: #ffffff;
-  --muted: #9ca3af;
-}
-
-body {
-  margin: 0;
+body{
+  margin:0;
   font-family: Arial, sans-serif;
-  background: var(--bg);
-  color: var(--text);
+  background:#0b1220;
+  color:white;
 }
-
-header {
-  padding: 14px;
-  text-align: center;
-  font-size: 22px;
-  font-weight: bold;
-  background: #020617;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+header{
+  padding:15px;
+  text-align:center;
+  font-size:26px;
+  font-weight:bold;
 }
-
-.container {
-  padding: 14px;
+.container{
+  max-width:400px;
+  margin:auto;
+  padding:20px;
 }
-
-.search {
-  margin-bottom: 12px;
+input,button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border-radius:8px;
+  border:none;
+  font-size:16px;
 }
-
-input {
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  border: none;
-  font-size: 15px;
+input{
+  background:#1c2438;
+  color:white;
 }
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px,1fr));
-  gap: 12px;
+button{
+  background:#22c55e;
+  color:black;
+  font-weight:bold;
+  cursor:pointer;
 }
-
-.card {
-  background: var(--card);
-  border-radius: 10px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: transform .15s;
+button.google{
+  background:white;
+  color:black;
 }
-
-.card:hover {
-  transform: scale(1.03);
+.link{
+  margin-top:15px;
+  text-align:center;
+  color:#60a5fa;
+  cursor:pointer;
 }
-
-.card img {
-  width: 100%;
-  height: 220px;
-  object-fit: cover;
-}
-
-.card .title {
-  padding: 8px;
-  font-weight: bold;
-  font-size: 14px;
-}
-
-.hidden {
-  display: none;
-}
-
-.back {
-  background: none;
-  color: var(--primary);
-  border: none;
-  font-size: 15px;
-  margin-bottom: 8px;
-}
-
-.section {
-  margin-top: 12px;
-}
-
-.section h3 {
-  margin: 6px 0;
-}
-
-.episode {
-  background: var(--card);
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 8px;
-}
-
-video {
-  width: 100%;
-  margin-top: 6px;
-  border-radius: 6px;
-}
-
-.small {
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.notice {
-  background: #1f2937;
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 12px;
+.hidden{display:none;}
+.card{
+  background:#111827;
+  padding:20px;
+  border-radius:12px;
 }
 </style>
 </head>
@@ -131,146 +66,110 @@ video {
 
 <div class="container">
 
-<div id="offline" class="notice hidden">
-  ⚠️ No Internet Connection
+<!-- LOGIN -->
+<div id="loginBox" class="card">
+  <h2>Login</h2>
+  <input id="loginEmail" type="email" placeholder="Email">
+  <input id="loginPassword" type="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+  <button class="google" onclick="googleLogin()">Login with Google</button>
+  <div class="link" onclick="showSignup()">Create account</div>
 </div>
 
-<div class="search">
-  <input id="search" placeholder="Search anime...">
+<!-- SIGNUP -->
+<div id="signupBox" class="card hidden">
+  <h2>Sign Up</h2>
+  <input id="signupEmail" type="email" placeholder="Email">
+  <input id="signupPassword" type="password" placeholder="Password">
+  <button onclick="signup()">Create Account</button>
+  <div class="link" onclick="showLogin()">Back to login</div>
 </div>
 
 <!-- HOME -->
-<div id="home" class="grid"></div>
+<div id="homeBox" class="card hidden">
+  <h2>Welcome 🎉</h2>
+  <p id="userEmail"></p>
+  <button onclick="logout()">Logout</button>
 
-<!-- DETAILS -->
-<div id="details" class="hidden"></div>
+  <hr style="margin:20px 0;opacity:.2">
+
+  <!-- PLACEHOLDERS (features added later) -->
+  <p>📌 My List (coming soon)</p>
+  <p>📺 Watch History (coming soon)</p>
+  <p>🔥 Categories (coming soon)</p>
+</div>
 
 </div>
 
+<!-- FIREBASE -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  getDocs,
-  updateDoc,
-  doc,
-  increment
-} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+import { getAuth, 
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDRDsqBFjIXp6mh8LO431Usd-Rmpw5pTDM",
   authDomain: "animo-ab129.firebaseapp.com",
-  projectId: "animo-ab129"
+  projectId: "animo-ab129",
+  storageBucket: "animo-ab129.firebasestorage.app",
+  messagingSenderId: "806187073262",
+  appId: "1:806187073262:web:28fb98cbf9a25a214ffdff"
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
 
-const home = document.getElementById("home");
-const details = document.getElementById("details");
-const search = document.getElementById("search");
-const offline = document.getElementById("offline");
-
-let animeCache = [];
-
-// 🔌 OFFLINE
-if (!navigator.onLine) {
-  offline.classList.remove("hidden");
-}
-
-// 📺 LOAD HOME
-async function loadHome() {
-  animeCache = [];
-  home.innerHTML = "";
-  const snap = await getDocs(collection(db, "anime"));
-  snap.forEach(d => {
-    animeCache.push({ id: d.id, ...d.data() });
-  });
-  renderHome(animeCache);
-}
-
-function renderHome(list) {
-  home.innerHTML = "";
-  list.forEach(a => {
-    home.innerHTML += `
-      <div class="card" onclick="openAnime('${a.id}')">
-        <img src="${a.image}">
-        <div class="title">${a.title}</div>
-      </div>
-    `;
-  });
-}
-
-// 🔍 SEARCH
-search.oninput = () => {
-  const q = search.value.toLowerCase();
-  renderHome(
-    animeCache.filter(a => a.title.toLowerCase().includes(q))
-  );
+window.login = () => {
+  signInWithEmailAndPassword(
+    auth,
+    loginEmail.value,
+    loginPassword.value
+  ).catch(e => alert(e.message));
 };
 
-// 📂 OPEN ANIME
-window.openAnime = async (animeId) => {
-  const anime = animeCache.find(a => a.id === animeId);
-  home.classList.add("hidden");
-  details.classList.remove("hidden");
-
-  details.innerHTML = `
-    <button class="back" onclick="goBack()">⬅ Back</button>
-    <h2>${anime.title}</h2>
-  `;
-
-  const seasons = await getDocs(
-    collection(db, "anime", animeId, "seasons")
-  );
-
-  seasons.forEach(s => {
-    details.innerHTML += `
-      <div class="section">
-        <h3>${s.data().name}</h3>
-        <div id="s-${s.id}"></div>
-      </div>
-    `;
-    loadEpisodes(animeId, s.id);
-  });
+window.signup = () => {
+  createUserWithEmailAndPassword(
+    auth,
+    signupEmail.value,
+    signupPassword.value
+  ).catch(e => alert(e.message));
 };
 
-// 🎬 EPISODES
-async function loadEpisodes(animeId, seasonId) {
-  const box = document.getElementById("s-" + seasonId);
-  const eps = await getDocs(
-    collection(db, "anime", animeId, "seasons", seasonId, "episodes")
-  );
-
-  eps.forEach(e => {
-    const d = e.data();
-    box.innerHTML += `
-      <div class="episode">
-        ▶ ${d.title}
-        <video controls src="${d.video}"></video>
-      </div>
-    `;
-    trackView(animeId);
-  });
-}
-
-// 👁️ TRACK VIEWS (LEADERBOARD BASE)
-async function trackView(animeId) {
-  await updateDoc(
-    doc(db, "anime", animeId),
-    { views: increment(1) }
-  );
-}
-
-// ⬅ BACK
-window.goBack = () => {
-  details.classList.add("hidden");
-  home.classList.remove("hidden");
+window.googleLogin = () => {
+  signInWithPopup(auth, provider)
+  .catch(e => alert(e.message));
 };
 
-// 🚀 START
-loadHome();
+window.logout = () => signOut(auth);
+
+window.showSignup = () => {
+  loginBox.classList.add("hidden");
+  signupBox.classList.remove("hidden");
+};
+
+window.showLogin = () => {
+  signupBox.classList.add("hidden");
+  loginBox.classList.remove("hidden");
+};
+
+onAuthStateChanged(auth, user => {
+  if(user){
+    loginBox.classList.add("hidden");
+    signupBox.classList.add("hidden");
+    homeBox.classList.remove("hidden");
+    userEmail.innerText = "Logged in as: " + user.email;
+  }else{
+    homeBox.classList.add("hidden");
+    loginBox.classList.remove("hidden");
+  }
+});
 </script>
 
 </body>
