@@ -1,89 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ANIMO – Player</title>
-
-<style>
-body {
-  margin: 0;
-  background: #020617;
-  color: white;
-  font-family: Arial, sans-serif;
-}
-
-header {
-  padding: 12px;
-  font-size: 20px;
-  font-weight: bold;
-}
-
-.back {
-  padding: 10px;
-  color: #60a5fa;
-  cursor: pointer;
-}
-
-.player-container {
-  padding: 10px;
-}
-
-iframe {
-  width: 100%;
-  height: 220px;
-  border-radius: 12px;
-  border: none;
-}
-
-h2 {
-  margin-top: 15px;
-}
-</style>
+  <title>ANIMO – Player</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      background:black;
+      color:white;
+      margin:0;
+      padding:10px;
+      font-family:sans-serif;
+    }
+    iframe {
+      width:100%;
+      height:60vh;
+      border:none;
+    }
+  </style>
 </head>
 
 <body>
 
-<header>ANIMO</header>
-<div class="back" onclick="goBack()">← Back</div>
+<h3 id="epTitle"></h3>
 
-<div class="player-container">
-  <h2 id="epTitle"></h2>
-  <iframe id="videoPlayer" allowfullscreen></iframe>
-</div>
+<iframe id="player" allowfullscreen></iframe>
 
 <script>
-const videoUrl = localStorage.getItem("videoUrl");
-const videoType = localStorage.getItem("videoType");
-const epTitle = localStorage.getItem("epTitle");
+document.getElementById("epTitle").innerText =
+  localStorage.getItem("epTitle");
 
-if (!videoUrl || !videoType) {
-  alert("Video not found");
-  window.location.href = "home.html";
-}
-
-document.getElementById("epTitle").innerText = epTitle;
-
-const player = document.getElementById("videoPlayer");
-
-/* VIDEO TYPE HANDLING */
-if (videoType === "youtube") {
-  player.src = videoUrl;
-}
-else if (videoType === "drive") {
-  player.src = videoUrl; 
-}
-else if (videoType === "telegram") {
-  player.src = videoUrl;
-}
-else {
-  alert("Unsupported video type");
-}
-
-/* BACK BUTTON */
-function goBack() {
-  history.back();
-}
+document.getElementById("player").src =
+  localStorage.getItem("videoUrl");
 </script>
 
 </body>
