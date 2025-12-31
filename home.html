@@ -1,141 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>ANIMO – Home</title>
-
-<!-- Firebase -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDRDsqBFjIXp6mh8LO431Usd-Rmpw5pTDM",
-  authDomain: "animo-ab129.firebaseapp.com",
-  projectId: "animo-ab129",
-  storageBucket: "animo-ab129.appspot.com",
-  messagingSenderId: "806187073262",
-  appId: "1:806187073262:web:28fb98cbf9a25a214ffdff"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-// 🔐 Protect page
-onAuthStateChanged(auth, user => {
-  if (!user) {
-    window.location.href = "index.html";
-  } else {
-    loadAnime();
-  }
-});
-
-// 🚪 Logout
-window.logout = async () => {
-  await signOut(auth);
-  window.location.href = "index.html";
-};
-
-// 📥 Load anime list
-async function loadAnime() {
-  const grid = document.getElementById("animeGrid");
-  grid.innerHTML = "";
-
-  const querySnapshot = await getDocs(collection(db, "anime"));
-  querySnapshot.forEach(doc => {
-    const anime = doc.data();
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
-      <img src="${anime.poster}" />
-      <h3>${anime.title}</h3>
-    `;
-    card.onclick = () => {
-      localStorage.setItem("animeId", doc.id);
-      window.location.href = "anime.html";
-    };
-    grid.appendChild(card);
-  });
-}
-</script>
-
-<style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: linear-gradient(180deg, #0b1220, #020617);
-  color: white;
-}
-
-header {
-  padding: 15px;
-  text-align: center;
-  font-size: 26px;
-  font-weight: bold;
-  background: #020617;
-}
-
-.topbar {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 15px;
-}
-
-button {
-  background: #22c55e;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 6px;
-  font-weight: bold;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 15px;
-  padding: 15px;
-}
-
-.card {
-  background: #0f172a;
-  border-radius: 12px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.card:hover {
-  transform: scale(1.05);
-}
-
-.card img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-}
-
-.card h3 {
-  margin: 10px;
-  font-size: 16px;
-}
-</style>
+  <title>ANIMO – Home</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      background:#0b1020;
+      color:white;
+      font-family:sans-serif;
+      padding:20px;
+    }
+    .anime {
+      width:160px;
+      cursor:pointer;
+    }
+    img {
+      width:100%;
+      border-radius:10px;
+    }
+  </style>
 </head>
 
 <body>
 
-<header>ANIMO</header>
+<h2>🔥 Popular Anime</h2>
 
-<div class="topbar">
-  <div>🔥 Popular Anime</div>
-  <button onclick="logout()">Logout</button>
+<div class="anime" onclick="openAnime()">
+  <img src="https://i.imgur.com/4M34hi2.jpg">
+  <p>Tokyo Revengers</p>
 </div>
 
-<div id="animeGrid" class="grid">
-  <!-- Anime cards load here -->
-</div>
+<script>
+function openAnime(){
+  localStorage.setItem("animeTitle","Tokyo Revengers");
+  window.location.href="anime.html";
+}
+</script>
 
 </body>
 </html>
