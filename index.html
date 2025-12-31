@@ -3,11 +3,175 @@
 <head>
   <title>ANIMO</title>
   <meta charset="UTF-8">
-</head>
-<body>
-  <h1>ANIMO</h1>
-  <p>Site is live ✅</p>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <a href="admin.html">Go to Admin Panel</a>
+  <style>
+    body {
+      margin: 0;
+      background: #0f172a;
+      color: white;
+      font-family: Arial;
+    }
+    header {
+      padding: 14px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+      background: #020617;
+    }
+    .container {
+      padding: 16px;
+    }
+    .card {
+      background: #1e293b;
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+    img {
+      width: 100%;
+      border-radius: 8px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      border: none;
+      border-radius: 6px;
+      background: #6366f1;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .back {
+      background: #334155;
+      margin-bottom: 12px;
+    }
+    h3 {
+      margin: 6px 0;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>ANIMO</header>
+
+<div class="container">
+  <button class="back" id="backBtn" onclick="goBack()" style="display:none;">⬅ Back</button>
+  <div id="content"></div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+  import {
+    getFirestore,
+    collection,
+    getDocs
+  } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDRDsqBFjIXp6mh8LO431Usd-Rmpw5pTDM",
+    authDomain: "animo-ab129.firebaseapp.com",
+    projectId: "animo-ab129"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const content = document.getElementById("content");
+  const backBtn = document.getElementById("backBtn");
+
+  let view = "anime"; // anime | season | episode
+  let currentAnime = null;
+  let currentSeason = null;
+
+  // 🔥 LOAD ANIME
+  async function loadAnime() {
+    view = "anime";
+    backBtn.style.display = "none";
+    content.innerHTML = "";
+
+    const snap = await getDocs(collection(db, "anime"));
+    snap.forEach(d => {
+      const a = d.data();
+      content.innerHTML += `
+        <div class="card">
+          <img src="${a.image}">
+          <h3>${a.title}</h3>
+          <button onclick="openSeasons('${d.id}','${a.title}')">
+            View Seasons
+          </button>
+        </div>
+      `;
+    });
+  }
+
+  // 📂 OPEN SEASONS
+  window.openSeasons = async (animeId, title) => {
+    view = "season";
+    currentAnime = animeId;
+    backBtn.style.display = "block";
+    content.innerHTML = `<h3>${title}</h3>`;
+
+    const snap = await getDocs(
+      collection(db, "anime", animeId, "seasons")
+    );
+
+    snap.forEach(d => {
+      const s = d.data();
+      content.innerHTML += `
+        <div class="card">
+          <b>${s.name}</b>
+          <button onclick="openEpisodes('${d.id}')">
+            View Episodes
+          </button>
+        </div>
+      `;
+    });
+  };
+
+  // 🎬 OPEN EPISODES
+  window.openEpisodes = async (seasonId) => {
+    view = "episode";
+    currentSeason = seasonId;
+    content.innerHTML = "";
+
+    const snap = await getDocs(
+      collection(db, "anime", currentAnime, "seasons", seasonId, "episodes")
+    );
+
+    snap.forEach(d => {
+      const e = d.data();
+      content.innerHTML += `
+        <div class="card">
+          <b>${e.title}</b>
+          <button onclick="play('${e.title}','${e.video}')">
+            ▶ Play
+          </button>
+        </div>
+      `;
+    });
+  };
+
+  // ▶ PLAY
+  window.play = (title, video) => {
+    localStorage.setItem("epTitle", title);
+    localStorage.setItem("epVideo", video);
+    location.href = "player.html";
+  };
+
+  // ⬅ BACK
+  window.goBack = () => {
+    if (view === "season") {
+      loadAnime();
+    } else if (view === "episode") {
+      openSeasons(currentAnime, "");
+    }
+  };
+
+  loadAnime();
+</script>
+
 </body>
 </html>
